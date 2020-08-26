@@ -4,6 +4,7 @@ import android.os.Bundle;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
+import com.rabbitmq.client.ConnectionFactory;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -14,6 +15,9 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import java.net.URISyntaxException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 
@@ -43,6 +47,17 @@ public class MainActivity extends AppCompatActivity {
             queue.putLast(message);
         } catch (InterruptedException e) {
             e.printStackTrace();
+        }
+    }
+
+    ConnectionFactory factory = new ConnectionFactory();
+    private void setupConnectionFactory() {
+        String uri = "CLOUDAMQP_URL";
+        try {
+            factory.setAutomaticRecoveryEnabled(false);
+            factory.setUri(uri);
+        } catch (KeyManagementException | NoSuchAlgorithmException | URISyntaxException e1) {
+            e1.printStackTrace();
         }
     }
 
