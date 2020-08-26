@@ -8,10 +8,14 @@ import com.google.android.material.snackbar.Snackbar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import android.util.Log;
 import android.view.View;
 
 import android.view.Menu;
 import android.view.MenuItem;
+
+import java.util.concurrent.BlockingDeque;
+import java.util.concurrent.LinkedBlockingDeque;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -30,6 +34,16 @@ public class MainActivity extends AppCompatActivity {
 //                        .setAction("Action", null).show();
 //            }
 //        });
+    }
+
+    private BlockingDeque<String> queue = new LinkedBlockingDeque <String>();
+    void publishMessage(String message) {
+        try {
+            Log.d("","[q] " + message);
+            queue.putLast(message);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
