@@ -11,35 +11,66 @@ import com.rabbitmq.client.ConnectionFactory;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.View;
 
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
 
 import java.net.URISyntaxException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 
 public class MainActivity extends AppCompatActivity {
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-//        Toolbar toolbar = findViewById(R.id.toolbar);
-//        setSupportActionBar(toolbar);
+        try {
+            setupConnectionFactory();
+        } catch (Exception ex){
+            java.lang.System.out.println(ex.getLocalizedMessage());
+        }
 
-//        FloatingActionButton fab = findViewById(R.id.fab);
-//        fab.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-//                        .setAction("Action", null).show();
-//            }
-//        });
+        publishToAMQP();
+        setupPubButton();
+
+        final Handler incomingMessageHandler = new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+                String message = msg.getData().getString("msg");
+                TextView tv = (TextView) findViewById(R.id.textView);
+                Date now = new Date();
+                SimpleDateFormat ft = new SimpleDateFormat("hh:mm:ss");
+                tv.append(ft.format(now) + ' ' + message + '\n');
+            }
+        };
+        subscribe(incomingMessageHandler);
+    }
+
+    private void subscribe(Handler incomingMessageHandler) {
+    }
+
+    void setupPubButton() {
+        Button button = (Button) findViewById(R.id.publish);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View arg0) {
+                EditText et = (EditText) findViewById(R.id.text);
+                publishMessage(et.getText().toString());
+                et.setText("");
+            }
+        });
     }
 
     Thread subscribeThread;
