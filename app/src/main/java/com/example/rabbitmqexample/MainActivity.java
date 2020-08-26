@@ -4,9 +4,11 @@ import android.os.Bundle;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
+import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.DefaultConsumer;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -58,7 +60,47 @@ public class MainActivity extends AppCompatActivity {
         subscribe(incomingMessageHandler);
     }
 
-    private void subscribe(Handler incomingMessageHandler) {
+    void subscribe(final Handler handler)
+    {
+        subscribeThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while(true) {
+                    try {
+                        Connection connection = factory.newConnection();
+                        Channel channel = connection.createChannel();
+                        channel.basicQos(1);
+                        AMQP.Queue.DeclareOk q = channel.queueDeclare();
+                        channel.queueBind(q.getQueue(), "amq.fanout", "chat");
+                        DefaultConsumer consumer = new DefaultConsumer(channel);
+                        channel.basicConsume(q.getQueue(), true, consumer);
+
+                        while (true) {
+//                            QueueingConsumer.Delivery delivery = consumer.nextDelivery();
+//                            String message = new String(delivery.getBody());
+                            String message = "new String(delivery.getBody());";
+                            // TODO get message from DefaultConsumer
+                            Log.d("","[r] " + message);
+                            Message msg = handler.obtainMessage();
+                            Bundle bundle = new Bundle();
+                            bundle.putString("msg", message);
+                            msg.setData(bundle);
+                            handler.sendMessage(msg);
+                        }
+//                    } catch (InterruptedException e) {
+//                        break;
+                    } catch (Exception e1) {
+                        Log.d("", "Connection broken: " + e1.getClass().getName());
+                        try {
+                            Thread.sleep(5000); //sleep and then try again
+                        } catch (InterruptedException e) {
+                            break;
+                        }
+                    }
+                }
+            }
+        });
+        subscribeThread.start();
     }
 
     void setupPubButton() {
