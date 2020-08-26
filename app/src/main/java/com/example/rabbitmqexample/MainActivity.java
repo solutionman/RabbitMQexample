@@ -4,6 +4,8 @@ import android.os.Bundle;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -40,6 +42,15 @@ public class MainActivity extends AppCompatActivity {
 //        });
     }
 
+    Thread subscribeThread;
+    Thread publishThread;
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        publishThread.interrupt();
+        subscribeThread.interrupt();
+    }
+
     private BlockingDeque<String> queue = new LinkedBlockingDeque <String>();
     void publishMessage(String message) {
         try {
@@ -59,6 +70,45 @@ public class MainActivity extends AppCompatActivity {
         } catch (KeyManagementException | NoSuchAlgorithmException | URISyntaxException e1) {
             e1.printStackTrace();
         }
+    }
+
+    public void publishToAMQP()
+    {
+        publishThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while(true) {
+                    try {
+                        Connection connection = factory.newConnection();
+                        Channel ch = connection.createChannel();
+                        ch.confirmSelect();
+
+                        while (true) {
+                            String message = queue.takeFirst();
+                            try{
+                                ch.basicPublish("amq.fanout", "chat", null, message.getBytes());
+                                Log.d("", "[s] " + message);
+                                ch.waitForConfirmsOrDie();
+                            } catch (Exception e){
+                                Log.d("","[f] " + message);
+                                queue.putFirst(message);
+                                throw e;
+                            }
+                        }
+                    } catch (InterruptedException e) {
+                        break;
+                    } catch (Exception e) {
+                        Log.d("", "Connection broken: " + e.getClass().getName());
+                        try {
+                            Thread.sleep(5000); //sleep and then try again
+                        } catch (InterruptedException e1) {
+                            break;
+                        }
+                    }
+                }
+            }
+        });
+        publishThread.start();
     }
 
     @Override
