@@ -134,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
     ConnectionFactory factory = new ConnectionFactory();
     private void setupConnectionFactory() {
 //        String uri = "CLOUDAMQP_URL";
-        String uri = "amqp://guest:guest@localhost";
+        String uri = "amqp://guest:guest@192.168.220.87:5672";
         try {
             factory.setAutomaticRecoveryEnabled(false);
             factory.setUri(uri);
