@@ -14,6 +14,12 @@
         android:layout_height="fill_parent"
         android:stretchColumns="1" >
 
+        <Button
+            android:id="@+id/record"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="LIVE" />
+
         <EditText
             android:id="@+id/text"
             android:layout_width="fill_parent"
@@ -35,6 +41,12 @@
 
             android:layout_below="@+id/publish"
             android:textColor="#000000" />
+
+        <TextureView
+            android:id="@+id/textureView"
+            android:layout_width="356dp"
+            android:layout_height="410dp"
+            android:layout_marginTop="32dp"/>
 
     </TableLayout>
 
